@@ -1,10 +1,14 @@
 package com.example.onlineShop3.controllers.entities;
 
+import com.example.onlineShop3.enums.Roles;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 
+import java.util.Collection;
+
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -21,5 +25,11 @@ public class User {
     private String firstname;
     @Embedded
     private Address address;
+    @ElementCollection
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+            @Column(name = "roles")
+            @Enumerated(STRING)
+            private Collection<Roles> roles;
+
 
 }
