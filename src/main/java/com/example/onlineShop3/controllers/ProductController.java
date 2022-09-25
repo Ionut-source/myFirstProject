@@ -3,10 +3,7 @@ package com.example.onlineShop3.controllers;
 import com.example.onlineShop3.services.ProductService;
 import com.example.onlineShop3.vos.ProductVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/product")
@@ -14,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 private final ProductService productService;
 
-    @PostMapping
-    public void addProduct(@RequestBody ProductVO productVO){
-        productService.addProduct(productVO);
+    @PostMapping("/{customerId}")
+    public void addProduct(@RequestBody ProductVO productVO, @PathVariable Long customerId){
+        productService.addProduct(productVO, customerId);
     }
 }
