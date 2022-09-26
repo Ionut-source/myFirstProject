@@ -13,10 +13,10 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
 
-    public void addProduct(ProductVO productVO, Long customerId){
+    public void addProduct(ProductVO productVO, Long customerId) {
         System.out.println("Customer with id " + customerId + " is in service");
-       Product product= productMapper.toEntity(productVO);
-       productRepository.save(product);
+        Product product = productMapper.toEntity(productVO);
+        productRepository.save(product);
 
     }
 }

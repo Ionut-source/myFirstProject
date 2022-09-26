@@ -1,6 +1,7 @@
 package com.example.onlineShop3.handlers;
 
 import com.example.onlineShop3.exceptions.InvalidCustomerIdException;
+import com.example.onlineShop3.exceptions.InvalidOperationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -15,5 +16,10 @@ public class SecurityHandler {
     @ExceptionHandler(InvalidCustomerIdException.class)
     public ResponseEntity<String> handlerInvalidCustomerIdException(){
         return status(BAD_REQUEST).body("Id-ul trimis este invalid!");
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<String> handlerInvalidOperationException(){
+        return status(BAD_REQUEST).body("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
     }
 }
