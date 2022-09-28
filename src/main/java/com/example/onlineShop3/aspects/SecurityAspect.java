@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static com.example.onlineShop3.enums.Roles.ADMIN;
+import static com.example.onlineShop3.enums.Roles.EDITOR;
 
 @Aspect
 @Component
@@ -25,6 +26,10 @@ public class SecurityAspect {
 
     @Pointcut("execution(* com.example.onlineShop3.services.ProductService.addProduct(..))")
     public void addProduct() {
+    }
+
+    @Pointcut("execution(* com.example.onlineShop3.services.ProductService.updateProduct(..))")
+    public void updateProduct() {
     }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addProduct()")
@@ -44,7 +49,28 @@ public class SecurityAspect {
         System.out.println(customerId);
     }
 
+    @Before("com.example.onlineShop3.aspects.SecurityAspect.updateProduct()")
+    public void checkSecurityBeforeUpdatingProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+        Long customerId = (Long) joinPoint.getArgs()[1];
+        Optional<User> userOptional = userRepository.findById(customerId);
+
+        if (!userOptional.isPresent()) {
+            throw new InvalidCustomerIdException();
+        }
+        User user = userOptional.get();
+
+        if (userIsNotAllowedToUpdateProduct(user.getRoles())) {
+            throw new InvalidOperationException();
+
+        }
+        System.out.println(customerId);
+    }
+
     private boolean userIsNotAllowedToAddProduct(Collection<Roles> roles) {
         return !roles.contains(ADMIN);
+    }
+
+    private boolean userIsNotAllowedToUpdateProduct(Collection<Roles> roles) {
+        return !roles.contains(ADMIN) && !roles.contains(EDITOR);
     }
 }

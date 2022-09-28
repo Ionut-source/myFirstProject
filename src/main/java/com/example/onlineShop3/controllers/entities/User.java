@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-
 import java.util.Collection;
 
 import static javax.persistence.EnumType.STRING;
@@ -27,9 +26,9 @@ public class User {
     private Address address;
     @ElementCollection
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-            @Column(name = "roles")
-            @Enumerated(STRING)
-            private Collection<Roles> roles;
+    @Column(name = "roles")
+    @Enumerated(STRING)
+    private Collection<Roles> roles;
 
 
 }

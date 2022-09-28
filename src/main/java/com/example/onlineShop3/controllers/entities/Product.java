@@ -6,7 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
-import static javax.persistence.EnumType.*;
+import static javax.persistence.EnumType.STRING;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity

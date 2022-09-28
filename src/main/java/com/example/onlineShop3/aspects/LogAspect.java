@@ -14,10 +14,11 @@ import java.util.Date;
 public class LogAspect {
 
     @Pointcut("execution(* com.example.onlineShop3.controllers.ProductController.addProduct(..))")
-    public void addProductPointCut(){}
+    public void addProductPointCut() {
+    }
 
     @Before("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")
-    public void before(JoinPoint joinPoint){
+    public void before(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date());
         System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
         System.out.println("The user had id " + joinPoint.getArgs()[1]);
@@ -25,7 +26,7 @@ public class LogAspect {
     }
 
     @After("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")
-    public void after(JoinPoint joinPoint){
+    public void after(JoinPoint joinPoint) {
         System.out.println("In after aspect at " + new Date());
     }
 }
