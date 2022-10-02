@@ -47,6 +47,7 @@ public class ProductService {
         }
 
         Product product = getProductEntity(productVO.getCode());
+        product.setId(100L);
         product.setValid(productVO.isValid());
         product.setPrice(productVO.getPrice());
         product.setCurrency(productVO.getCurrency());
@@ -55,6 +56,16 @@ public class ProductService {
 
         productRepository.save(product);
 
+    }
+
+    public void deleteProduct(String productCode, Long customerId) throws InvalidProductCodeException {
+        System.out.println("User with id: " + customerId + " is deleting " + productCode);
+        if (productCode == null){
+            throw new InvalidProductCodeException();
+        }
+
+       Product product = getProductEntity(productCode);
+       productRepository.delete(product);
     }
 
     private Product getProductEntity(String productCode) throws InvalidProductCodeException {

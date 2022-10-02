@@ -7,6 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 import static javax.persistence.EnumType.STRING;
+import static javax.persistence.GenerationType.AUTO;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -15,7 +16,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = AUTO)
     private long id;
     @Column(unique = true)
     private String code;

@@ -17,11 +17,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
-import static com.example.onlineShop3.enums.Currencies.RON;
-import static com.example.onlineShop3.enums.Currencies.USD;
-import static com.example.onlineShop3.enums.Roles.ADMIN;
-import static com.example.onlineShop3.enums.Roles.CLIENT;
+import static com.example.onlineShop3.enums.Currencies.*;
+import static com.example.onlineShop3.enums.Roles.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -102,18 +101,7 @@ class ProductControllerTest {
 
     @Test
     public void addProduct_whenUserIsNOTAdmin_shouldThrowInvalidOperationException() {
-        User userEntity = new User();
-        userEntity.setFirstname("IonutC");
-        Collection<Roles> roles = new ArrayList<>();
-        roles.add(CLIENT);
-        userEntity.setRoles(roles);
-        Address address = new Address();
-        address.setCity("Bucuresti");
-        address.setStreet("Crizantemelor");
-        address.setNumber(2);
-        address.setZipcode("11");
-        userEntity.setAddress(address);
-        userRepository.save(userEntity);
+        User userEntity = saveUserWithRole(CLIENT);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode("777");
@@ -154,7 +142,86 @@ class ProductControllerTest {
         ObjectArrayAssert<ProductVO> voObjectArrayAssert = assertThat(products).hasSize(2);
         assertThat(products[0].getCode()).contains("1");
         assertThat(products[1].getCode()).contains("2");
+    }
 
+    @Test
+    public void updateProduct_whenUserIsEditor_shouldUpdateTheProduct(){
+        Product product = generateProduct("110");
+        productRepository.save(product);
+
+        User user = saveUserWithRole(EDITOR);
+
+        ProductVO productVO = new ProductVO();
+        productVO.setCode(product.getCode());
+        productVO.setDescription("good");
+        productVO.setCurrency(RON);
+        productVO.setPrice(55.15);
+        productVO.setValid(true);
+        productVO.setStock(24);
+
+        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+
+        Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
+
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
+
+
+    }
+
+    @Test
+    public void updateProduct_whenUserIsAdmin_shouldUpdateTheProduct(){
+        Product product = generateProduct("111");
+        productRepository.save(product);
+
+        User user = saveUserWithRole(ADMIN);
+
+        ProductVO productVO = new ProductVO();
+        productVO.setCode(product.getCode());
+        productVO.setDescription("good");
+        productVO.setCurrency(RON);
+        productVO.setPrice(55.15);
+        productVO.setValid(true);
+        productVO.setStock(24);
+
+        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+
+        Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
+
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
+    }
+
+    @Test
+    public void updateProduct_whenUserIsClient_shouldNOTUpdateTheProduct(){
+        Product product = generateProduct("112");
+        productRepository.save(product);
+
+        User user = saveUserWithRole(CLIENT);
+
+        ProductVO productVO = new ProductVO();
+        productVO.setCode(product.getCode());
+        productVO.setDescription("good");
+        productVO.setCurrency(RON);
+        productVO.setPrice(55.15);
+        productVO.setValid(true);
+        productVO.setStock(24);
+
+        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+
+        Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
+
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
     }
 
     private Product generateProduct(String productCode) {
@@ -177,5 +244,21 @@ class ProductControllerTest {
         products.add(product2);
         productRepository.saveAll(products);
         return product;
+    }
+
+    private User saveUserWithRole(Roles role) {
+        User userEntity = new User();
+        userEntity.setFirstname("IonutC");
+        Collection<Roles> roles = new ArrayList<>();
+        roles.add(role);
+        userEntity.setRoles(roles);
+        Address address = new Address();
+        address.setCity("Bucuresti");
+        address.setStreet("Crizantemelor");
+        address.setNumber(2);
+        address.setZipcode("11");
+        userEntity.setAddress(address);
+        userRepository.save(userEntity);
+        return userEntity;
     }
 }

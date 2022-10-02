@@ -17,12 +17,23 @@ public class LogAspect {
     public void addProductPointCut() {
     }
 
+    @Pointcut("execution(* com.example.onlineShop3.controllers.ProductController.updateProduct(..))")
+    public void updateProductPointCut() {
+    }
+
     @Before("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")
     public void before(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date());
         System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
         System.out.println("The user had id " + joinPoint.getArgs()[1]);
 
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.updateProductPointCut()")
+    public void beforeUpdate(JoinPoint joinPoint) {
+        System.out.println("In before aspect at " + new Date() + " for doing an update");
+        System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
+        System.out.println("The user had id " + joinPoint.getArgs()[1]);
     }
 
     @After("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")

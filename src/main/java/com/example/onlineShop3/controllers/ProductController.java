@@ -32,4 +32,9 @@ public class ProductController {
     public void updateProduct(@RequestBody ProductVO productVO, Long customerId) throws InvalidProductCodeException {
         productService.updateProduct(productVO, customerId);
     }
+
+    @DeleteMapping("/{productCode}/{customerId}")
+    public void deleteProduct(@PathVariable String productCode, @PathVariable Long customerId) throws InvalidProductCodeException {
+        productService.deleteProduct(productCode, customerId);
+    }
 }
