@@ -185,7 +185,29 @@ public class ProductServiceTest {
         Product productSendAsCapture = productArgumentCaptor.getValue();
 
         assertThat(productSendAsCapture.getCurrency()).isEqualTo(tvVO.getCurrency());
+    }
 
+    @Test
+    public void deleteProduct_whenCodeIsNull_shouldThrownAnException(){
+        try {
+            productService.deleteProduct(null, 1L);
+        } catch (InvalidProductCodeException e) {
+            assert true;
+            return;
+        }
+        assert false;
+    }
+
+    @Test
+    public void deleteProduct_whenCodeIsValid_shouldDeleteTheProduct() throws InvalidProductCodeException {
+        Product telephone = new Product();
+        telephone.setCode("24");
+        when(productRepository.findByCode(any())).thenReturn(of(telephone));
+
+            productService.deleteProduct("111", 1L);
+
+            verify(productRepository).findByCode("111");
+            verify(productRepository).delete(telephone);
 
 
     }

@@ -26,7 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-class ProductControllerTest {
+class ProductControllerIntegrationTest {
 
     public static final String LOCALHOST = "http://localhost:";
     @LocalServerPort
@@ -163,11 +163,11 @@ class ProductControllerTest {
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
-        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
-        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
-        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
-        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
-        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(product.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(product.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(product.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(product.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(product.isValid());
 
 
     }
@@ -185,23 +185,28 @@ class ProductControllerTest {
         productVO.setCurrency(RON);
         productVO.setPrice(55.15);
         productVO.setValid(true);
-        productVO.setStock(24);
+        productVO.setStock(37);
 
         testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
-        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
-        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
-        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
-        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
-        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(product.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(product.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(product.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(product.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(product.isValid());
+
     }
 
     @Test
     public void updateProduct_whenUserIsClient_shouldNOTUpdateTheProduct(){
-        Product product = generateProduct("112");
+        Product product = generateProduct("113");
         productRepository.save(product);
+
+        testRestTemplate.delete(LOCALHOST + port + "/product" + product.getCode() + "/1");
+
+        assertThat(productRepository.findByCode(product.getCode())).isPresent();
 
         User user = saveUserWithRole(CLIENT);
 
@@ -211,18 +216,40 @@ class ProductControllerTest {
         productVO.setCurrency(RON);
         productVO.setPrice(55.15);
         productVO.setValid(true);
-        productVO.setStock(24);
+        productVO.setStock(25);
 
         testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
-        assertThat(updatedProduct.get().getDescription()).isEqualTo(productVO.getDescription());
-        assertThat(updatedProduct.get().getCurrency()).isEqualTo(productVO.getCurrency());
-        assertThat(updatedProduct.get().getPrice()).isEqualTo(productVO.getPrice());
-        assertThat(updatedProduct.get().getStock()).isEqualTo(productVO.getStock());
-        assertThat(updatedProduct.get().isValid()).isEqualTo(productVO.isValid());
+        assertThat(updatedProduct.get().getDescription()).isEqualTo(product.getDescription());
+        assertThat(updatedProduct.get().getCurrency()).isEqualTo(product.getCurrency());
+        assertThat(updatedProduct.get().getPrice()).isEqualTo(product.getPrice());
+        assertThat(updatedProduct.get().getStock()).isEqualTo(product.getStock());
+        assertThat(updatedProduct.get().isValid()).isEqualTo(product.isValid());
     }
+
+    @Test
+    public void deleteProduct_whenUserIsAdmin_shouldDeleteTheProduct(){
+        Product product = generateProduct("114");
+        productRepository.save(product);
+
+        testRestTemplate.delete(LOCALHOST + port + "/product/" + product.getCode() + "/1");
+
+        assertThat(productRepository.findByCode(product.getCode())).isNotPresent();
+    }
+
+    @Test
+    public void deleteProduct_whenUserIsClient_shouldNOTDeleteTheProduct(){
+        Product product = generateProduct("114");
+        productRepository.save(product);
+
+        testRestTemplate.delete(LOCALHOST + port + "/product/" + product.getCode() + "/2");
+
+        assertThat(productRepository.findByCode(product.getCode())).isPresent();
+    }
+
+
 
     private Product generateProduct(String productCode) {
         Product product = new Product();
