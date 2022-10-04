@@ -14,30 +14,39 @@ import java.util.Date;
 public class LogAspect {
 
     @Pointcut("execution(* com.example.onlineShop3.controllers.ProductController.addProduct(..))")
-    public void addProductPointCut() {
+    public void addProductPointcut() {
     }
 
     @Pointcut("execution(* com.example.onlineShop3.controllers.ProductController.updateProduct(..))")
-    public void updateProductPointCut() {
+    public void updateProductPointcut() {
     }
 
-    @Before("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")
+    @Pointcut("execution(* com.example.onlineShop3.controllers.OrderController.addOrder(..))")
+    public void addOrderPointcut() {
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.addProductPointcut()")
     public void before(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date());
         System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
         System.out.println("The user had id " + joinPoint.getArgs()[1]);
-
     }
 
-    @Before("com.example.onlineShop3.aspects.LogAspect.updateProductPointCut()")
+    @Before("com.example.onlineShop3.aspects.LogAspect.updateProductPointcut()")
     public void beforeUpdate(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date() + " for doing an update");
         System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
         System.out.println("The user had id " + joinPoint.getArgs()[1]);
     }
 
-    @After("com.example.onlineShop3.aspects.LogAspect.addProductPointCut()")
+    @After("com.example.onlineShop3.aspects.LogAspect.addProductPointcut()")
     public void after(JoinPoint joinPoint) {
         System.out.println("In after aspect at " + new Date());
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.addOrderPointcut()")
+    public void beforeAddingAnOrder(JoinPoint joinPoint) {
+        System.out.println("In before aspect at " + new Date());
+        System.out.println("OrderVO:" + joinPoint.getArgs()[0]);
     }
 }

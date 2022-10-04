@@ -22,7 +22,7 @@ public class OrderMapper {
     private final ProductRepository productRepository;
 
     public Orders toEntity(OrderVO orderVO) throws InvalidCustomerIdException, InvalidProductsException, InvalidProductIdException {
-        if (orderVO == null){
+        if (orderVO == null) {
             return null;
         }
         validateOrder(orderVO);
@@ -31,7 +31,7 @@ public class OrderMapper {
 
         Optional<User> userOptional = userRepository.findById(orderVO.getUserId().longValue());
 
-        if (!userOptional.isPresent()){
+        if (!userOptional.isPresent()) {
             throw new InvalidCustomerIdException();
         }
 
@@ -42,12 +42,12 @@ public class OrderMapper {
 
         Set<Integer> productIds = productsIdsToQuantityMap.keySet();
 
-        for (Integer productId : productIds){
+        for (Integer productId : productIds) {
             OrderItem orderItem = new OrderItem();
 
             Optional<Product> productOptional = productRepository.findById(productId.longValue());
 
-            if (productOptional.isPresent()){
+            if (productOptional.isPresent()) {
                 throw new InvalidProductIdException();
             }
             orderItem.setProduct(productOptional.get());
@@ -61,10 +61,7 @@ public class OrderMapper {
     }
 
     private void validateOrder(OrderVO orderVO) throws InvalidCustomerIdException, InvalidProductsException {
-        if (orderVO.getUserId() == null){
-            throw new InvalidCustomerIdException();
-        }
-        if (orderVO.getProductsIdsToQuantity().keySet().isEmpty()){
+        if (orderVO.getProductsIdsToQuantity().keySet().isEmpty()) {
             throw new InvalidProductsException();
         }
     }

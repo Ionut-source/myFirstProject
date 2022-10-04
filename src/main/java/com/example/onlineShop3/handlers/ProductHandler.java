@@ -12,7 +12,7 @@ import static org.springframework.http.ResponseEntity.status;
 public class ProductHandler {
 
     @ExceptionHandler(InvalidProductCodeException.class)
-    public ResponseEntity<String> InvalidProductCodeException() {
+    public ResponseEntity<String> handleInvalidProductCodeException() {
         return status(BAD_REQUEST).body("Codul produsului trimis este invalid!");
     }
 }
