@@ -8,6 +8,7 @@ import com.example.onlineShop3.vos.ProductVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public class ProductService {
 
     public void updateProduct(ProductVO productVO, Long customerId) throws InvalidProductCodeException {
         System.out.println("Customer with id " + customerId + "is in service for update");
-        if (productVO.getCode() == null){
+        if (productVO.getCode() == null) {
             throw new InvalidProductCodeException();
         }
 
@@ -55,18 +56,27 @@ public class ProductService {
         product.setDescription(productVO.getDescription());
 
         productRepository.save(product);
-
     }
 
     public void deleteProduct(String productCode, Long customerId) throws InvalidProductCodeException {
         System.out.println("User with id: " + customerId + " is deleting " + productCode);
-        if (productCode == null){
-            throw new InvalidProductCodeException();
-        }
+        verifyProductCode(productCode);
 
-       Product product = getProductEntity(productCode);
-       productRepository.delete(product);
+        Product product = getProductEntity(productCode);
+        productRepository.delete(product);
     }
+
+    @Transactional
+    public void addStock(String productCode, Integer quantity, Long customerId) throws InvalidProductCodeException {
+        System.out.println("User with id: " + customerId + " is adding stock for " + productCode +
+                " number of items: " + quantity);
+        verifyProductCode(productCode);
+        Product product = getProductEntity(productCode);
+
+        int oldStock = product.getStock();
+        product.setStock(oldStock + quantity);
+    }
+
 
     private Product getProductEntity(String productCode) throws InvalidProductCodeException {
         Optional<Product> productOptional = productRepository.findByCode(productCode);
@@ -75,7 +85,12 @@ public class ProductService {
             throw new InvalidProductCodeException();
         }
 
-       return productOptional.get();
+        return productOptional.get();
+    }
 
+    private void verifyProductCode(String productCode) throws InvalidProductCodeException {
+        if (productCode == null) {
+            throw new InvalidProductCodeException();
+        }
     }
 }

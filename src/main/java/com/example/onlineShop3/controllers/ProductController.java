@@ -37,4 +37,9 @@ public class ProductController {
     public void deleteProduct(@PathVariable String productCode, @PathVariable Long customerId) throws InvalidProductCodeException {
         productService.deleteProduct(productCode, customerId);
     }
+
+    @PatchMapping("/{productCode}/{quantity}/{customerId}")
+    public void addStock(@PathVariable String productCode,@PathVariable Integer quantity, @PathVariable Long customerId) throws InvalidProductCodeException {
+        productService.addStock(productCode, quantity, customerId);
+    }
 }

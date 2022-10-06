@@ -36,6 +36,10 @@ public class SecurityAspect {
     public void deleteProduct() {
     }
 
+    @Pointcut("execution(* com.example.onlineShop3.services.ProductService.addStock(..))")
+    public void addStock() {
+    }
+
     @Pointcut("execution(* com.example.onlineShop3.services.OrderService.addOrder(..))")
     public void addOrderPointCut() {
     }
@@ -86,6 +90,24 @@ public class SecurityAspect {
         }
         System.out.println(customerId);
     }
+
+    @Before("com.example.onlineShop3.aspects.SecurityAspect.addStock()")
+    public void checkSecurityBeforeAddingStock(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+        Long customerId = (Long) joinPoint.getArgs()[2];
+        Optional<User> userOptional = userRepository.findById(customerId);
+
+        if (!userOptional.isPresent()) {
+            throw new InvalidCustomerIdException();
+        }
+        User user = userOptional.get();
+
+        if (userIsNotAllowedToAddStock(user.getRoles())) {
+            throw new InvalidOperationException();
+
+        }
+        System.out.println(customerId);
+    }
+
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.deleteProduct()")
     public void checkSecurityBeforeDeletingAProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
@@ -200,5 +222,9 @@ public class SecurityAspect {
 
     private boolean userIsNotAllowedToUpdateProduct(Collection<Roles> roles) {
         return !roles.contains(ADMIN) && !roles.contains(EDITOR);
+    }
+
+    private boolean userIsNotAllowedToAddStock(Collection<Roles> roles) {
+        return !roles.contains(ADMIN);
     }
 }
