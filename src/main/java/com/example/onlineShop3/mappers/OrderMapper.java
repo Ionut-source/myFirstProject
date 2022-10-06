@@ -47,7 +47,7 @@ public class OrderMapper {
 
             Optional<Product> productOptional = productRepository.findById(productId.longValue());
 
-            if (productOptional.isPresent()) {
+            if (!productOptional.isPresent()) {
                 throw new InvalidProductIdException();
             }
             orderItem.setProduct(productOptional.get());
@@ -60,7 +60,7 @@ public class OrderMapper {
         return orders;
     }
 
-    private void validateOrder(OrderVO orderVO) throws InvalidCustomerIdException, InvalidProductsException {
+    private void validateOrder(OrderVO orderVO) throws InvalidProductsException {
         if (orderVO.getProductsIdsToQuantity().keySet().isEmpty()) {
             throw new InvalidProductsException();
         }

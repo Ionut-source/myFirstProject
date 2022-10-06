@@ -29,7 +29,7 @@ public class ProductController {
     }
 
     @PutMapping("/{customerId}")
-    public void updateProduct(@RequestBody ProductVO productVO, Long customerId) throws InvalidProductCodeException {
+    public void updateProduct(@RequestBody ProductVO productVO,@PathVariable Long customerId) throws InvalidProductCodeException {
         productService.updateProduct(productVO, customerId);
     }
 

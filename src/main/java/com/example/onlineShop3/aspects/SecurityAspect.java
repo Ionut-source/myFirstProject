@@ -40,6 +40,10 @@ public class SecurityAspect {
     public void addOrderPointCut() {
     }
 
+    @Pointcut("execution(* com.example.onlineShop3.services.OrderService.deliver(..))")
+    public void deliverPointCut() {
+    }
+
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addProduct()")
     public void checkSecurityBeforeAddingProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
@@ -107,6 +111,27 @@ public class SecurityAspect {
         if (userIsNotAllowedToAddAnOrder(user.getRoles())) {
             throw new InvalidOperationException();
         }
+    }
+
+        @Before("com.example.onlineShop3.aspects.SecurityAspect.updateProduct()")
+        public void checkSecurityBeforeDeliver(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+            Long customerId = (Long) joinPoint.getArgs()[1];
+            Optional<User> userOptional = userRepository.findById(customerId);
+
+            if (!userOptional.isPresent()) {
+                throw new InvalidCustomerIdException();
+            }
+            User user = userOptional.get();
+
+            if (userIsNotAllowedToDeliver(user.getRoles())) {
+                throw new InvalidOperationException();
+
+            }
+            System.out.println(customerId);
+        }
+
+    private boolean userIsNotAllowedToDeliver(Collection<Roles> roles) {
+        return !roles.contains(EXPEDITOR);
     }
 
     private boolean userIsNotAllowedToAddAnOrder(Collection<Roles> roles) {
