@@ -2,6 +2,7 @@ package com.example.onlineShop3.services;
 
 import com.example.onlineShop3.controllers.entities.OrderItem;
 import com.example.onlineShop3.controllers.entities.Orders;
+import com.example.onlineShop3.controllers.entities.Product;
 import com.example.onlineShop3.exceptions.*;
 import com.example.onlineShop3.mappers.OrderMapper;
 import com.example.onlineShop3.repositories.OrderRepository;
@@ -35,29 +36,75 @@ public class OrderService {
     }
 
     @Transactional
-    public void deliver(Integer orderId, Long customerId) throws InvalidOrderIdException {
+    public void deliver(Integer orderId, Long customerId) throws InvalidOrderIdException, OrderCanceledException {
         System.out.println("Customer-ul cu id-ul: " + customerId + " este in service");
-        if (orderId == null){
-            throw new InvalidOrderIdException();
+        throwExceptionIfOrderIdIsAbsent(orderId);
+
+        Orders order = getOrderOrThrowException(orderId);
+        if (order.isCanceled()){
+            throw new OrderCanceledException();
+        }
+        order.setDelivered(true);
+    }
+
+    @Transactional
+    public void cancelOrder(Integer orderId, Long customerId) throws InvalidOrderIdException, OrderAlreadyDeliveredException {
+        System.out.println("Customer-ul cu id-ul: " + customerId + " este in service pentru a anula comanda " + orderId);
+
+        throwExceptionIfOrderIdIsAbsent(orderId);
+        Orders order = getOrderOrThrowException(orderId);
+        if (order.isDelivered()){
+            throw  new OrderAlreadyDeliveredException();
+        }
+        order.setCanceled(true);}
+
+    @Transactional
+    public void returnOrder(Integer orderId, Long customerId) throws InvalidOrderIdException, OrderNotDeliveredYetException, OrderCanceledException {
+        System.out.println("Customer-ul cu id-ul: " + customerId + " este in service pentru a returna comanda " + orderId);
+        throwExceptionIfOrderIdIsAbsent(orderId);
+        Orders order = getOrderOrThrowException(orderId);
+
+        if (!order.isDelivered()){
+            throw new OrderNotDeliveredYetException();
         }
 
-        Optional<Orders> orderOptional = orderRepository.findById(orderId.longValue());
-        if (!orderOptional.isPresent()){
+        if (order.isCanceled()){
+            throw new OrderCanceledException();
+        }
+
+        order.setReturned(true);
+        order.getOrderItems().forEach(orderItem -> {
+            Product product = orderItem.getProduct();
+            int oldStock = product.getStock();
+            product.setStock(oldStock + orderItem.getQuantity());
+
+        });
+    }
+
+    private void throwExceptionIfOrderIdIsAbsent(Integer orderId) throws InvalidOrderIdException {
+        if (orderId == null) {
             throw new InvalidOrderIdException();
         }
-        Orders order = orderOptional.get();
-        order.setDeliver(true);
+    }
+
+    private Orders getOrderOrThrowException(Integer orderId) throws InvalidOrderIdException {
+        Optional<Orders> orderOptional = orderRepository.findById(orderId.longValue());
+        if (!orderOptional.isPresent()) {
+            throw new InvalidOrderIdException();
+        }
+        return orderOptional.get();
     }
 
     private void validateStock(OrderVO orderVO) throws NotEnoughStockException {
         Map<Integer, Integer> productsIdsToQuantityMap = orderVO.getProductsIdsToQuantity();
         Set<Integer> productIds = productsIdsToQuantityMap.keySet();
-        for (Integer productId : productIds){
+        for (Integer productId : productIds) {
             Integer quantity = productsIdsToQuantityMap.get(productId);
             boolean havingEnoughStock = stockService.isHavingEnoughStock(productId, quantity);
-            if (!havingEnoughStock){
-            throw new NotEnoughStockException();
+            if (!havingEnoughStock) {
+                throw new NotEnoughStockException();
             }
         }
     }
+
 }

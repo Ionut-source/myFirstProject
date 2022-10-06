@@ -35,4 +35,19 @@ public class OrderHandler {
     public ResponseEntity<String> handleInvalidOrderIdException() {
         return status(BAD_REQUEST).body("Id-ul comenzii nu este valid!");
     }
+
+    @ExceptionHandler(OrderAlreadyDeliveredException.class)
+    public ResponseEntity<String> handleOrderAlreadyDeliveredException() {
+        return status(BAD_REQUEST).body("Comanda a fost deja expediata!");
+    }
+
+    @ExceptionHandler(OrderCanceledException.class)
+    public ResponseEntity<String> handleOrderCanceledException() {
+        return status(BAD_REQUEST).body("Comanda a fost anulata!");
+    }
+
+    @ExceptionHandler(OrderNotDeliveredYetException.class)
+    public ResponseEntity<String> handleOrderNotDeliveredYetException() {
+        return status(BAD_REQUEST).body("Comanda nu poate fi returnata deoarece nu a fost livrata!");
+    }
 }

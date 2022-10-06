@@ -44,6 +44,15 @@ public class SecurityAspect {
     public void deliverPointCut() {
     }
 
+    @Pointcut("execution(* com.example.onlineShop3.services.OrderService.cancelOrder(..))")
+    public void cancelOrderPointCut() {
+    }
+
+    @Pointcut("execution(* com.example.onlineShop3.services.OrderService.returnOrder(..))")
+    public void returnOrderPointCut() {
+    }
+
+
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addProduct()")
     public void checkSecurityBeforeAddingProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
@@ -113,7 +122,8 @@ public class SecurityAspect {
         }
     }
 
-        @Before("com.example.onlineShop3.aspects.SecurityAspect.updateProduct()")
+
+        @Before("com.example.onlineShop3.aspects.SecurityAspect.deliverPointCut()")
         public void checkSecurityBeforeDeliver(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
             Long customerId = (Long) joinPoint.getArgs()[1];
             Optional<User> userOptional = userRepository.findById(customerId);
@@ -129,6 +139,48 @@ public class SecurityAspect {
             }
             System.out.println(customerId);
         }
+
+    @Before("com.example.onlineShop3.aspects.SecurityAspect.cancelOrderPointCut()")
+    public void checkSecurityBeforeCancelingOrder(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+        Long customerId = (Long) joinPoint.getArgs()[1];
+        Optional<User> userOptional = userRepository.findById(customerId);
+
+        if (!userOptional.isPresent()) {
+            throw new InvalidCustomerIdException();
+        }
+        User user = userOptional.get();
+
+        if (userIsNotAllowedToCancel(user.getRoles())) {
+            throw new InvalidOperationException();
+
+        }
+        System.out.println(customerId);
+    }
+
+    @Before("com.example.onlineShop3.aspects.SecurityAspect.returnOrderPointCut()")
+    public void checkSecurityBeforeReturningOrder(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+        Long customerId = (Long) joinPoint.getArgs()[1];
+        Optional<User> userOptional = userRepository.findById(customerId);
+
+        if (!userOptional.isPresent()) {
+            throw new InvalidCustomerIdException();
+        }
+        User user = userOptional.get();
+
+        if (userIsNotAllowedToReturnOrder(user.getRoles())) {
+            throw new InvalidOperationException();
+
+        }
+        System.out.println(customerId);
+    }
+
+    private boolean userIsNotAllowedToReturnOrder(Collection<Roles> roles) {
+        return !roles.contains(CLIENT);
+    }
+
+    private boolean userIsNotAllowedToCancel(Collection<Roles> roles) {
+        return !roles.contains(CLIENT);
+    }
 
     private boolean userIsNotAllowedToDeliver(Collection<Roles> roles) {
         return !roles.contains(EXPEDITOR);

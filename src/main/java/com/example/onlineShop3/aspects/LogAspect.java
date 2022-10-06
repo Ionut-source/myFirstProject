@@ -25,6 +25,18 @@ public class LogAspect {
     public void addOrderPointcut() {
     }
 
+    @Pointcut("execution(* com.example.onlineShop3.controllers.OrderController.deliverOrder(..))")
+    public void deliverOrderPointcut() {
+    }
+
+    @Pointcut("execution(* com.example.onlineShop3.controllers.OrderController.cancelOrder(..))")
+    public void cancelOrderPointcut() {
+    }
+
+    @Pointcut("execution(* com.example.onlineShop3.controllers.OrderController.returnOrder(..))")
+    public void returnOrderPointcut() {
+    }
+
     @Before("com.example.onlineShop3.aspects.LogAspect.addProductPointcut()")
     public void before(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date());
@@ -36,6 +48,27 @@ public class LogAspect {
     public void beforeUpdate(JoinPoint joinPoint) {
         System.out.println("In before aspect at " + new Date() + " for doing an update");
         System.out.println("ProductVO:" + joinPoint.getArgs()[0]);
+        System.out.println("The user had id " + joinPoint.getArgs()[1]);
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.deliverOrderPointcut()")
+    public void beforeDeliver(JoinPoint joinPoint) {
+        System.out.println("In before aspect at " + new Date() + " for doing a deliver");
+        System.out.println("Order Id :" + joinPoint.getArgs()[0]);
+        System.out.println("The user had id " + joinPoint.getArgs()[1]);
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.cancelOrderPointcut()")
+    public void beforeCancel(JoinPoint joinPoint) {
+        System.out.println("In before aspect at " + new Date() + " for doing a cancelation");
+        System.out.println("Order Id :" + joinPoint.getArgs()[0]);
+        System.out.println("The user had id " + joinPoint.getArgs()[1]);
+    }
+
+    @Before("com.example.onlineShop3.aspects.LogAspect.returnOrderPointcut()")
+    public void beforeReturningOrder(JoinPoint joinPoint) {
+        System.out.println("In before aspect at " + new Date() + " for doing a return");
+        System.out.println("Order Id :" + joinPoint.getArgs()[0]);
         System.out.println("The user had id " + joinPoint.getArgs()[1]);
     }
 

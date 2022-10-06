@@ -24,7 +24,7 @@ public class Orders {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
-    private boolean isDeliver;
+    private boolean isDelivered;
     private boolean isReturned;
     private boolean isCanceled;
 
