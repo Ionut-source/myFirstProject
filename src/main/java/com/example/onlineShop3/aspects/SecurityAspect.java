@@ -58,7 +58,8 @@ public class SecurityAspect {
 
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addProduct()")
-    public void checkSecurityBeforeAddingProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeAddingProduct(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
         Optional<User> userOptional = userRepository.findById(customerId);
 
@@ -75,7 +76,8 @@ public class SecurityAspect {
     }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.updateProduct()")
-    public void checkSecurityBeforeUpdatingProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeUpdatingProduct(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
         Optional<User> userOptional = userRepository.findById(customerId);
 
@@ -92,7 +94,8 @@ public class SecurityAspect {
     }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addStock()")
-    public void checkSecurityBeforeAddingStock(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeAddingStock(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[2];
         Optional<User> userOptional = userRepository.findById(customerId);
 
@@ -110,7 +113,8 @@ public class SecurityAspect {
 
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.deleteProduct()")
-    public void checkSecurityBeforeDeletingAProduct(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeDeletingAProduct(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
         Optional<User> userOptional = userRepository.findById(customerId);
 
@@ -126,7 +130,8 @@ public class SecurityAspect {
     }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.addOrderPointCut()")
-    public void checkSecurityBeforeAddingAnOrder(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeAddingAnOrder(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         OrderVO orderVO = (OrderVO) joinPoint.getArgs()[0];
 
         if (orderVO.getUserId() == null) {
@@ -145,25 +150,27 @@ public class SecurityAspect {
     }
 
 
-        @Before("com.example.onlineShop3.aspects.SecurityAspect.deliverPointCut()")
-        public void checkSecurityBeforeDeliver(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
-            Long customerId = (Long) joinPoint.getArgs()[1];
-            Optional<User> userOptional = userRepository.findById(customerId);
+    @Before("com.example.onlineShop3.aspects.SecurityAspect.deliverPointCut()")
+    public void checkSecurityBeforeDeliver(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
+        Long customerId = (Long) joinPoint.getArgs()[1];
+        Optional<User> userOptional = userRepository.findById(customerId);
 
-            if (!userOptional.isPresent()) {
-                throw new InvalidCustomerIdException();
-            }
-            User user = userOptional.get();
-
-            if (userIsNotAllowedToDeliver(user.getRoles())) {
-                throw new InvalidOperationException();
-
-            }
-            System.out.println(customerId);
+        if (!userOptional.isPresent()) {
+            throw new InvalidCustomerIdException();
         }
+        User user = userOptional.get();
+
+        if (userIsNotAllowedToDeliver(user.getRoles())) {
+            throw new InvalidOperationException();
+
+        }
+        System.out.println(customerId);
+    }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.cancelOrderPointCut()")
-    public void checkSecurityBeforeCancelingOrder(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeCancelingOrder(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
         Optional<User> userOptional = userRepository.findById(customerId);
 
@@ -180,7 +187,8 @@ public class SecurityAspect {
     }
 
     @Before("com.example.onlineShop3.aspects.SecurityAspect.returnOrderPointCut()")
-    public void checkSecurityBeforeReturningOrder(JoinPoint joinPoint) throws InvalidCustomerIdException, InvalidOperationException {
+    public void checkSecurityBeforeReturningOrder(JoinPoint joinPoint)
+            throws InvalidCustomerIdException, InvalidOperationException {
         Long customerId = (Long) joinPoint.getArgs()[1];
         Optional<User> userOptional = userRepository.findById(customerId);
 

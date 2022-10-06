@@ -188,7 +188,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void deleteProduct_whenCodeIsNull_shouldThrownAnException(){
+    public void deleteProduct_whenCodeIsNull_shouldThrownAnException() {
         try {
             productService.deleteProduct(null, 1L);
         } catch (InvalidProductCodeException e) {
@@ -204,10 +204,10 @@ public class ProductServiceTest {
         telephone.setCode("24");
         when(productRepository.findByCode(any())).thenReturn(of(telephone));
 
-            productService.deleteProduct("111", 1L);
+        productService.deleteProduct("111", 1L);
 
-            verify(productRepository).findByCode("111");
-            verify(productRepository).delete(telephone);
+        verify(productRepository).findByCode("111");
+        verify(productRepository).delete(telephone);
 
 
     }

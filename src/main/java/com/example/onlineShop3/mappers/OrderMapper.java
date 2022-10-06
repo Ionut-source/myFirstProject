@@ -21,7 +21,8 @@ public class OrderMapper {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public Orders toEntity(OrderVO orderVO) throws InvalidCustomerIdException, InvalidProductsException, InvalidProductIdException {
+    public Orders toEntity(OrderVO orderVO)
+            throws InvalidCustomerIdException, InvalidProductsException, InvalidProductIdException {
         if (orderVO == null) {
             return null;
         }

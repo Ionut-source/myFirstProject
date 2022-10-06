@@ -29,17 +29,20 @@ public class ProductController {
     }
 
     @PutMapping("/{customerId}")
-    public void updateProduct(@RequestBody ProductVO productVO,@PathVariable Long customerId) throws InvalidProductCodeException {
+    public void updateProduct(@RequestBody ProductVO productVO, @PathVariable Long customerId)
+            throws InvalidProductCodeException {
         productService.updateProduct(productVO, customerId);
     }
 
     @DeleteMapping("/{productCode}/{customerId}")
-    public void deleteProduct(@PathVariable String productCode, @PathVariable Long customerId) throws InvalidProductCodeException {
+    public void deleteProduct(@PathVariable String productCode, @PathVariable Long customerId)
+            throws InvalidProductCodeException {
         productService.deleteProduct(productCode, customerId);
     }
 
     @PatchMapping("/{productCode}/{quantity}/{customerId}")
-    public void addStock(@PathVariable String productCode,@PathVariable Integer quantity, @PathVariable Long customerId) throws InvalidProductCodeException {
+    public void addStock(@PathVariable String productCode, @PathVariable Integer quantity, @PathVariable Long customerId)
+            throws InvalidProductCodeException {
         productService.addStock(productCode, quantity, customerId);
     }
 }

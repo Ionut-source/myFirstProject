@@ -22,7 +22,8 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final StockService stockService;
 
-    public void addOrder(OrderVO orderVO) throws InvalidCustomerIdException, InvalidProductsException, InvalidProductIdException, NotEnoughStockException {
+    public void addOrder(OrderVO orderVO)
+            throws InvalidCustomerIdException, InvalidProductsException, InvalidProductIdException, NotEnoughStockException {
         validateStock(orderVO);
 
         Orders order = orderMapper.toEntity(orderVO);
@@ -41,34 +42,37 @@ public class OrderService {
         throwExceptionIfOrderIdIsAbsent(orderId);
 
         Orders order = getOrderOrThrowException(orderId);
-        if (order.isCanceled()){
+        if (order.isCanceled()) {
             throw new OrderCanceledException();
         }
         order.setDelivered(true);
     }
 
     @Transactional
-    public void cancelOrder(Integer orderId, Long customerId) throws InvalidOrderIdException, OrderAlreadyDeliveredException {
+    public void cancelOrder(Integer orderId, Long customerId)
+            throws InvalidOrderIdException, OrderAlreadyDeliveredException {
         System.out.println("Customer-ul cu id-ul: " + customerId + " este in service pentru a anula comanda " + orderId);
 
         throwExceptionIfOrderIdIsAbsent(orderId);
         Orders order = getOrderOrThrowException(orderId);
-        if (order.isDelivered()){
-            throw  new OrderAlreadyDeliveredException();
+        if (order.isDelivered()) {
+            throw new OrderAlreadyDeliveredException();
         }
-        order.setCanceled(true);}
+        order.setCanceled(true);
+    }
 
     @Transactional
-    public void returnOrder(Integer orderId, Long customerId) throws InvalidOrderIdException, OrderNotDeliveredYetException, OrderCanceledException {
+    public void returnOrder(Integer orderId, Long customerId)
+            throws InvalidOrderIdException, OrderNotDeliveredYetException, OrderCanceledException {
         System.out.println("Customer-ul cu id-ul: " + customerId + " este in service pentru a returna comanda " + orderId);
         throwExceptionIfOrderIdIsAbsent(orderId);
         Orders order = getOrderOrThrowException(orderId);
 
-        if (!order.isDelivered()){
+        if (!order.isDelivered()) {
             throw new OrderNotDeliveredYetException();
         }
 
-        if (order.isCanceled()){
+        if (order.isCanceled()) {
             throw new OrderCanceledException();
         }
 

@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-import static com.example.onlineShop3.enums.Currencies.*;
+import static com.example.onlineShop3.enums.Currencies.RON;
+import static com.example.onlineShop3.enums.Currencies.USD;
 import static com.example.onlineShop3.enums.Roles.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -92,7 +93,8 @@ class ProductControllerIntegrationTest {
         productVO.setDescription("minunat");
         productVO.setValid(true);
 
-        ResponseEntity<String> response = testRestTemplate.postForEntity(LOCALHOST + port + "/product/123", productVO, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity(LOCALHOST + port +
+                "/product/123", productVO, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
         assertThat(response.getBody()).isEqualTo("Id-ul trimis este invalid!");
@@ -111,7 +113,8 @@ class ProductControllerIntegrationTest {
         productVO.setDescription("minunat");
         productVO.setValid(true);
 
-        ResponseEntity<String> response = testRestTemplate.postForEntity(LOCALHOST + port + "/product/" + userEntity.getId(), productVO, String.class);
+        ResponseEntity<String> response = testRestTemplate.postForEntity(LOCALHOST + port + "/product/" +
+                userEntity.getId(), productVO, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
         assertThat(response.getBody()).isEqualTo("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
@@ -121,7 +124,8 @@ class ProductControllerIntegrationTest {
     public void getProductByCode_whenCodeIsPresentInDb_shouldReturnTheProduct() {
         Product product = storeTwoProductsInDatabase("1010", "2020");
 
-        ProductVO productResponse = testRestTemplate.getForObject(LOCALHOST + port + "/product/" + product.getCode(), ProductVO.class);
+        ProductVO productResponse = testRestTemplate.getForObject(LOCALHOST + port + "/product/" +
+                product.getCode(), ProductVO.class);
 
         assertThat(productResponse.getCode()).isEqualTo(product.getCode());
     }
@@ -145,7 +149,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void updateProduct_whenUserIsEditor_shouldUpdateTheProduct(){
+    public void updateProduct_whenUserIsEditor_shouldUpdateTheProduct() {
         Product product = generateProduct("110");
         productRepository.save(product);
 
@@ -159,7 +163,7 @@ class ProductControllerIntegrationTest {
         productVO.setValid(true);
         productVO.setStock(24);
 
-        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+        testRestTemplate.put(LOCALHOST + port + "/product/" + user.getId(), productVO);
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
@@ -173,7 +177,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void updateProduct_whenUserIsAdmin_shouldUpdateTheProduct(){
+    public void updateProduct_whenUserIsAdmin_shouldUpdateTheProduct() {
         Product product = generateProduct("111");
         productRepository.save(product);
 
@@ -187,7 +191,7 @@ class ProductControllerIntegrationTest {
         productVO.setValid(true);
         productVO.setStock(37);
 
-        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+        testRestTemplate.put(LOCALHOST + port + "/product/" + user.getId(), productVO);
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
@@ -200,7 +204,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void updateProduct_whenUserIsClient_shouldNOTUpdateTheProduct(){
+    public void updateProduct_whenUserIsClient_shouldNOTUpdateTheProduct() {
         Product product = generateProduct("113");
         productRepository.save(product);
 
@@ -218,7 +222,7 @@ class ProductControllerIntegrationTest {
         productVO.setValid(true);
         productVO.setStock(25);
 
-        testRestTemplate.put(LOCALHOST + port + "/product/" +  user.getId(), productVO);
+        testRestTemplate.put(LOCALHOST + port + "/product/" + user.getId(), productVO);
 
         Optional<Product> updatedProduct = productRepository.findByCode(productVO.getCode());
 
@@ -230,7 +234,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProduct_whenUserIsAdmin_shouldDeleteTheProduct(){
+    public void deleteProduct_whenUserIsAdmin_shouldDeleteTheProduct() {
         Product product = generateProduct("114");
         productRepository.save(product);
 
@@ -240,7 +244,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    public void deleteProduct_whenUserIsClient_shouldNOTDeleteTheProduct(){
+    public void deleteProduct_whenUserIsClient_shouldNOTDeleteTheProduct() {
         Product product = generateProduct("114");
         productRepository.save(product);
 
@@ -248,7 +252,6 @@ class ProductControllerIntegrationTest {
 
         assertThat(productRepository.findByCode(product.getCode())).isPresent();
     }
-
 
 
     private Product generateProduct(String productCode) {
