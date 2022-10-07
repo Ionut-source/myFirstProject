@@ -6,14 +6,19 @@ import com.example.onlineShop3.controllers.entities.User;
 import com.example.onlineShop3.enums.Roles;
 import com.example.onlineShop3.repositories.ProductRepository;
 import com.example.onlineShop3.repositories.UserRepository;
+import com.example.onlineShop3.utils.UtilsComponent;
 import com.example.onlineShop3.vos.ProductVO;
 import org.assertj.core.api.ObjectArrayAssert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,10 +29,20 @@ import static com.example.onlineShop3.enums.Currencies.USD;
 import static com.example.onlineShop3.enums.Roles.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.HttpEntity.EMPTY;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class ProductControllerIntegrationTest {
+
+    @TestConfiguration
+    static class ProductControllerIntegrationTestContextConfiguration {
+        @Bean
+        public RestTemplate restTemplateForPatch() {
+            return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+        }
+    }
 
     public static final String LOCALHOST = "http://localhost:";
     @LocalServerPort
@@ -40,10 +55,17 @@ class ProductControllerIntegrationTest {
     private TestRestTemplate testRestTemplate;
 
     @Autowired
+    private RestTemplate restTemplateForPatch;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private UtilsComponent utilsComponent;
+
 
     @Test
     public void contextLoads() {
@@ -97,13 +119,13 @@ class ProductControllerIntegrationTest {
                 "/product/123", productVO, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(response.getBody()).isEqualTo("Id-ul trimis este invalid!");
+        assertThat(response.getBody()).isEqualTo("Comanda dumneavoastra nu este asignata unui user valid!");
 
     }
 
     @Test
     public void addProduct_whenUserIsNOTAdmin_shouldThrowInvalidOperationException() {
-        User userEntity = saveUserWithRole(CLIENT);
+        User userEntity = utilsComponent.saveUserWithRole(CLIENT);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode("777");
@@ -153,7 +175,7 @@ class ProductControllerIntegrationTest {
         Product product = generateProduct("110");
         productRepository.save(product);
 
-        User user = saveUserWithRole(EDITOR);
+        User user = utilsComponent.saveUserWithRole(EDITOR);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -181,7 +203,7 @@ class ProductControllerIntegrationTest {
         Product product = generateProduct("111");
         productRepository.save(product);
 
-        User user = saveUserWithRole(ADMIN);
+        User user = utilsComponent.saveUserWithRole(ADMIN);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -212,7 +234,7 @@ class ProductControllerIntegrationTest {
 
         assertThat(productRepository.findByCode(product.getCode())).isPresent();
 
-        User user = saveUserWithRole(CLIENT);
+        User user = utilsComponent.saveUserWithRole(CLIENT);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -253,6 +275,21 @@ class ProductControllerIntegrationTest {
         assertThat(productRepository.findByCode(product.getCode())).isPresent();
     }
 
+    @Test
+    public void addStock_whenAddingStockToAnItemByAdmin_shouldBeSaveIsnDB() {
+        Product product = generateProduct("115");
+        productRepository.save(product);
+
+        User user = utilsComponent.saveUserWithRole(ADMIN);
+
+        restTemplateForPatch.exchange(LOCALHOST + port + "/product/" + product.getCode() + "/3/" + user.getId(),
+                PATCH, EMPTY, Void.class);
+
+        Product productFromDb = productRepository.findByCode(product.getCode()).get();
+        assertThat(productFromDb.getStock()).isEqualTo(27);
+
+    }
+
 
     private Product generateProduct(String productCode) {
         Product product = new Product();
@@ -274,21 +311,5 @@ class ProductControllerIntegrationTest {
         products.add(product2);
         productRepository.saveAll(products);
         return product;
-    }
-
-    private User saveUserWithRole(Roles role) {
-        User userEntity = new User();
-        userEntity.setFirstname("IonutC");
-        Collection<Roles> roles = new ArrayList<>();
-        roles.add(role);
-        userEntity.setRoles(roles);
-        Address address = new Address();
-        address.setCity("Bucuresti");
-        address.setStreet("Crizantemelor");
-        address.setNumber(2);
-        address.setZipcode("11");
-        userEntity.setAddress(address);
-        userRepository.save(userEntity);
-        return userEntity;
     }
 }
