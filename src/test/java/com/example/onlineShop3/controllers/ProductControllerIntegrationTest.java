@@ -6,7 +6,7 @@ import com.example.onlineShop3.controllers.entities.User;
 import com.example.onlineShop3.enums.Roles;
 import com.example.onlineShop3.repositories.ProductRepository;
 import com.example.onlineShop3.repositories.UserRepository;
-import com.example.onlineShop3.utils.UtilsComponent;
+import com.example.onlineShop3.utils.UtilComponent;
 import com.example.onlineShop3.vos.ProductVO;
 import org.assertj.core.api.ObjectArrayAssert;
 import org.junit.jupiter.api.Test;
@@ -27,6 +27,7 @@ import java.util.Optional;
 import static com.example.onlineShop3.enums.Currencies.RON;
 import static com.example.onlineShop3.enums.Currencies.USD;
 import static com.example.onlineShop3.enums.Roles.*;
+import static com.example.onlineShop3.utils.UtilComponent.LOCALHOST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpEntity.EMPTY;
@@ -43,8 +44,6 @@ class ProductControllerIntegrationTest {
             return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         }
     }
-
-    public static final String LOCALHOST = "http://localhost:";
     @LocalServerPort
     private int port;
 
@@ -64,7 +63,7 @@ class ProductControllerIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
-    private UtilsComponent utilsComponent;
+    private UtilComponent utilComponent;
 
 
     @Test
@@ -120,12 +119,11 @@ class ProductControllerIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
         assertThat(response.getBody()).isEqualTo("Comanda dumneavoastra nu este asignata unui user valid!");
-
     }
 
     @Test
     public void addProduct_whenUserIsNOTAdmin_shouldThrowInvalidOperationException() {
-        User userEntity = utilsComponent.saveUserWithRole(CLIENT);
+        User userEntity = utilComponent.saveUserWithRole(CLIENT);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode("777");
@@ -144,7 +142,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     public void getProductByCode_whenCodeIsPresentInDb_shouldReturnTheProduct() {
-        Product product = storeTwoProductsInDatabase("1010", "2020");
+        Product product = utilComponent.storeTwoProductsInDatabase("1010", "2020");
 
         ProductVO productResponse = testRestTemplate.getForObject(LOCALHOST + port + "/product/" +
                 product.getCode(), ProductVO.class);
@@ -162,7 +160,7 @@ class ProductControllerIntegrationTest {
     @Test
     public void getProducts() {
         productRepository.deleteAll();
-        storeTwoProductsInDatabase("1", "2");
+        utilComponent.storeTwoProductsInDatabase("1", "2");
         ProductVO[] products = testRestTemplate.getForObject(LOCALHOST + port + "/product", ProductVO[].class);
 
         ObjectArrayAssert<ProductVO> voObjectArrayAssert = assertThat(products).hasSize(2);
@@ -172,10 +170,10 @@ class ProductControllerIntegrationTest {
 
     @Test
     public void updateProduct_whenUserIsEditor_shouldUpdateTheProduct() {
-        Product product = generateProduct("110");
+        Product product = utilComponent.generateProduct("110");
         productRepository.save(product);
 
-        User user = utilsComponent.saveUserWithRole(EDITOR);
+        User user = utilComponent.saveUserWithRole(EDITOR);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -194,16 +192,14 @@ class ProductControllerIntegrationTest {
         assertThat(updatedProduct.get().getPrice()).isEqualTo(product.getPrice());
         assertThat(updatedProduct.get().getStock()).isEqualTo(product.getStock());
         assertThat(updatedProduct.get().isValid()).isEqualTo(product.isValid());
-
-
     }
 
     @Test
     public void updateProduct_whenUserIsAdmin_shouldUpdateTheProduct() {
-        Product product = generateProduct("111");
+        Product product = utilComponent.generateProduct("111");
         productRepository.save(product);
 
-        User user = utilsComponent.saveUserWithRole(ADMIN);
+        User user = utilComponent.saveUserWithRole(ADMIN);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -222,19 +218,18 @@ class ProductControllerIntegrationTest {
         assertThat(updatedProduct.get().getPrice()).isEqualTo(product.getPrice());
         assertThat(updatedProduct.get().getStock()).isEqualTo(product.getStock());
         assertThat(updatedProduct.get().isValid()).isEqualTo(product.isValid());
-
     }
 
     @Test
     public void updateProduct_whenUserIsClient_shouldNOTUpdateTheProduct() {
-        Product product = generateProduct("113");
+        Product product = utilComponent.generateProduct("113");
         productRepository.save(product);
 
         testRestTemplate.delete(LOCALHOST + port + "/product" + product.getCode() + "/1");
 
         assertThat(productRepository.findByCode(product.getCode())).isPresent();
 
-        User user = utilsComponent.saveUserWithRole(CLIENT);
+        User user = utilComponent.saveUserWithRole(CLIENT);
 
         ProductVO productVO = new ProductVO();
         productVO.setCode(product.getCode());
@@ -257,7 +252,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     public void deleteProduct_whenUserIsAdmin_shouldDeleteTheProduct() {
-        Product product = generateProduct("114");
+        Product product = utilComponent.generateProduct("114");
         productRepository.save(product);
 
         testRestTemplate.delete(LOCALHOST + port + "/product/" + product.getCode() + "/1");
@@ -267,7 +262,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     public void deleteProduct_whenUserIsClient_shouldNOTDeleteTheProduct() {
-        Product product = generateProduct("114");
+        Product product = utilComponent.generateProduct("114");
         productRepository.save(product);
 
         testRestTemplate.delete(LOCALHOST + port + "/product/" + product.getCode() + "/2");
@@ -277,10 +272,10 @@ class ProductControllerIntegrationTest {
 
     @Test
     public void addStock_whenAddingStockToAnItemByAdmin_shouldBeSaveIsnDB() {
-        Product product = generateProduct("115");
+        Product product = utilComponent.generateProduct("115");
         productRepository.save(product);
 
-        User user = utilsComponent.saveUserWithRole(ADMIN);
+        User user = utilComponent.saveUserWithRole(ADMIN);
 
         restTemplateForPatch.exchange(LOCALHOST + port + "/product/" + product.getCode() + "/3/" + user.getId(),
                 PATCH, EMPTY, Void.class);
@@ -288,28 +283,5 @@ class ProductControllerIntegrationTest {
         Product productFromDb = productRepository.findByCode(product.getCode()).get();
         assertThat(productFromDb.getStock()).isEqualTo(27);
 
-    }
-
-
-    private Product generateProduct(String productCode) {
-        Product product = new Product();
-        product.setCode(productCode);
-        product.setDescription("good");
-        product.setCurrency(RON);
-        product.setPrice(55.15);
-        product.setValid(true);
-        product.setStock(24);
-        return product;
-    }
-
-    private Product storeTwoProductsInDatabase(String code1, String code2) {
-        Product product = generateProduct(code1);
-        Product product2 = generateProduct(code2);
-
-        ArrayList<Product> products = new ArrayList<>();
-        products.add(product);
-        products.add(product2);
-        productRepository.saveAll(products);
-        return product;
     }
 }
