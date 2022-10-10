@@ -44,6 +44,7 @@ class ProductControllerIntegrationTest {
             return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         }
     }
+
     @LocalServerPort
     private int port;
 
@@ -137,7 +138,7 @@ class ProductControllerIntegrationTest {
                 userEntity.getId(), productVO, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(response.getBody()).isEqualTo("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
+        assertThat(response.getBody()).isEqualTo("Utilizatorul nu are permisiunea de a executa aceasta operatiune!");
     }
 
     @Test

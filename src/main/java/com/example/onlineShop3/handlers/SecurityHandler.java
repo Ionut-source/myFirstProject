@@ -19,6 +19,6 @@ public class SecurityHandler {
 
     @ExceptionHandler(InvalidOperationException.class)
     public ResponseEntity<String> handlerInvalidOperationException() {
-        return status(BAD_REQUEST).body("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
+        return status(BAD_REQUEST).body("Utilizatorul nu are permisiunea de a executa aceasta operatiune!");
     }
 }

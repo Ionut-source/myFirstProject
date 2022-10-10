@@ -4,8 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-
-import java.util.Collection;
+import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -20,7 +19,7 @@ public class Orders {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_id")
-    private Collection<OrderItem> orderItems;
+    private List<OrderItem> orderItems;
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;

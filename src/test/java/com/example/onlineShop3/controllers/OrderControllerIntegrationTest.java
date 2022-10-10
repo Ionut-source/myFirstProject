@@ -20,7 +20,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.example.onlineShop3.enums.Roles.*;
 import static com.example.onlineShop3.utils.UtilComponent.LOCALHOST;
@@ -70,7 +73,7 @@ class OrderControllerIntegrationTest {
 
         List<Orders> ordersIterable = (List<Orders>) orderRepository.findAll();
         Optional<OrderItem> orderItemOptional = ordersIterable.stream()
-                .map(orders -> ((List<OrderItem>) orders.getOrderItems()))
+                .map(orders -> orders.getOrderItems())
                 .flatMap(List::stream)
                 .filter(orderItem -> orderItem.getProduct().getId() == product.getId())
                 .findFirst();
@@ -89,7 +92,7 @@ class OrderControllerIntegrationTest {
                 "/order", orderVO, String.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(responseEntity.getBody()).isEqualTo("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
+        assertThat(responseEntity.getBody()).isEqualTo("Utilizatorul nu are permisiunea de a executa aceasta operatiune!");
     }
 
     @Test
@@ -103,7 +106,7 @@ class OrderControllerIntegrationTest {
                 "/order", orderVO, String.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(responseEntity.getBody()).isEqualTo("Utiliztorul nu are permisiunea de a executa aceasta operatiune!");
+        assertThat(responseEntity.getBody()).isEqualTo("Utilizatorul nu are permisiunea de a executa aceasta operatiune!");
     }
 
     @Test
@@ -113,7 +116,7 @@ class OrderControllerIntegrationTest {
 
         Product product = utilComponent.storeTwoProductsInDatabase("35", "47");
 
-        Orders orderWithProducts = generateOrderItems(product, client);
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, client);
         orderRepository.save(orderWithProducts);
 
         restTemplateForPatch.exchange(LOCALHOST + port + "/order/" + orderWithProducts.getId() + "/" + expeditor.getId(),
@@ -131,14 +134,15 @@ class OrderControllerIntegrationTest {
 
         Product product = utilComponent.storeTwoProductsInDatabase("56", "68");
 
-        Orders orderWithProducts = generateOrderItems(product, client);
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, client);
         orderRepository.save(orderWithProducts);
 
         try {
-            ResponseEntity<String> responseEntity = restTemplateForPatch.exchange(LOCALHOST + port + "/order/" + orderWithProducts.getId() + "/" + adminAsExpeditor.getId(),
+            ResponseEntity<String> responseEntity = restTemplateForPatch.exchange(LOCALHOST + port + "/order/" +
+                            orderWithProducts.getId() + "/" + adminAsExpeditor.getId(),
                     PATCH, EMPTY, String.class);
         } catch (RestClientException exception) {
-            assertThat(exception.getMessage()).isEqualTo("400 : [Utiliztorul nu are permisiunea de a executa aceasta operatiune!]");
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
         }
     }
 
@@ -149,21 +153,170 @@ class OrderControllerIntegrationTest {
 
         Product product = utilComponent.storeTwoProductsInDatabase("88", "99");
 
-        Orders orderWithProducts = generateOrderItems(product, client);
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, client);
         orderRepository.save(orderWithProducts);
 
         try {
-            ResponseEntity<String> responseEntity = restTemplateForPatch.exchange(LOCALHOST + port + "/order/" + orderWithProducts.getId() + "/" + clientAsExpeditor.getId(),
+            ResponseEntity<String> responseEntity = restTemplateForPatch.exchange(LOCALHOST + port + "/order/" +
+                            orderWithProducts.getId() + "/" + clientAsExpeditor.getId(),
                     PATCH, EMPTY, String.class);
         } catch (RestClientException exception) {
-            assertThat(exception.getMessage()).isEqualTo("400 : [Utiliztorul nu are permisiunea de a executa aceasta operatiune!]");
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
         }
 
     }
 
     @Test
     public void deliver_whenHavingAnOrderWitchIsCanceled_shouldThrowAnException() {
+        User expeditor = utilComponent.saveUserWithRole(EXPEDITOR);
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("98 ", "87");
 
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, expeditor);
+        orderWithProducts.setCanceled(true);
+        orderRepository.save(orderWithProducts);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplateForPatch.exchange(LOCALHOST + port + "/order/" +
+                            orderWithProducts.getId() + "/" + expeditor.getId(),
+                    PATCH, EMPTY, String.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Comanda a fost anulata!]");
+        }
+    }
+
+    @Test
+    public void cancel_whenValidOrder_shouldCancelIt() {
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("77 ", "66");
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, client);
+        orderRepository.save(orderWithProducts);
+
+        restTemplateForPatch.exchange(LOCALHOST + port + "/order/cancel/" + orderWithProducts.getId() + "/" + client.getId(),
+                PATCH, EMPTY, Void.class);
+
+        Orders orderFromDB = orderRepository.findById(orderWithProducts.getId()).get();
+
+        assertThat(orderFromDB.isCanceled()).isTrue();
+    }
+
+    @Test
+    public void cancel_whenOrderIsAlreadySent_shouldThrowAnException() {
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("76 ", "65");
+
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, client);
+        orderWithProducts.setDelivered(true);
+        orderRepository.save(orderWithProducts);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/cancel/" + orderWithProducts.getId() + "/" + client.getId(),
+                    PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Comanda a fost deja expediata!]");
+        }
+    }
+
+    @Test
+    public void cancel_whenUserIsAdmin_shouldThrowAnException() {
+        User admin = utilComponent.saveUserWithRole(ADMIN);
+        Product product = utilComponent.storeTwoProductsInDatabase("54 ", "43");
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, admin);
+        orderRepository.save(orderWithProducts);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/cancel/" + orderWithProducts.getId() + "/" + admin.getId(),
+                    PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
+        }
+    }
+
+    @Test
+    public void cancel_whenUserIsAnExpeditor_shouldThrowAnException() {
+        User expeditor = utilComponent.saveUserWithRole(EXPEDITOR);
+        Product product = utilComponent.storeTwoProductsInDatabase("42 ", "31");
+        Orders orderWithProducts = utilComponent.generateOrderItems(product, expeditor);
+        orderRepository.save(orderWithProducts);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/cancel/" + orderWithProducts.getId() + "/" + expeditor.getId(),
+                    PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
+        }
+    }
+
+    @Test
+    @Transactional
+    public void return_whenOrderValid_shouldReturnIt() {
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("3r32 ", "3t13");
+        Orders orderWithProducts = utilComponent.saveDeliveredOrder(client, product);
+
+        restTemplateForPatch.exchange(LOCALHOST + port + "/order/return/" + orderWithProducts.getId() +
+                "/" + client.getId(), PATCH, EMPTY, Void.class);
+        Orders orderFromDb = orderRepository.findById(orderWithProducts.getId()).get();
+
+        assertThat(orderFromDb.isReturned()).isTrue();
+        assertThat(orderFromDb.getOrderItems().get(0).getProduct().getStock()).isEqualTo(product.getStock()
+                + orderWithProducts.getOrderItems().get(0).getQuantity());
+    }
+
+    @Test
+    public void return_whenOrderIsNotDelivered_shouldThrowException() {
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("312 ", "358");
+        Orders orderWithProducts = utilComponent.saveOrder(client, product);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/return/" + orderWithProducts.getId() + "/" + client.getId(),
+                    PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Comanda nu poate fi returnata deoarece nu a fost livrata!]");
+        }
+    }
+
+    @Test
+    public void return_whenOrderIsCanceled_shouldThrowException() {
+        User client = utilComponent.saveUserWithRole(CLIENT);
+        Product product = utilComponent.storeTwoProductsInDatabase("27522 ", "78998");
+        Orders orderWithProducts = utilComponent.saveCanceledAndDeliveredOrder(client, product);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/return/" + orderWithProducts.getId() + "/" + client.getId(),
+                    PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Comanda a fost anulata!]");
+        }
+    }
+
+    @Test
+    public void return_whenUserIsAdmin_shouldThrowException() {
+        User adminAsClient = utilComponent.saveUserWithRole(ADMIN);
+        Product product = utilComponent.storeTwoProductsInDatabase("7524534 ", "314543");
+        Orders orderWithProducts = utilComponent.saveOrder(adminAsClient, product);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/return/" + orderWithProducts.getId() +
+                    "/" + adminAsClient.getId(), PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
+        }
+    }
+
+    @Test
+    public void return_whenUserIsExpeditor_shouldThrowException() {
+        User expeditorAsClient = utilComponent.saveUserWithRole(EXPEDITOR);
+        Product product = utilComponent.storeTwoProductsInDatabase("5654y45 ", "89907e");
+        Orders orderWithProducts = utilComponent.saveOrder(expeditorAsClient, product);
+
+        try {
+            restTemplateForPatch.exchange(LOCALHOST + port + "/order/return/" + orderWithProducts.getId() +
+                    "/" + expeditorAsClient.getId(), PATCH, EMPTY, Void.class);
+        } catch (RestClientException exception) {
+            assertThat(exception.getMessage()).isEqualTo("400 : [Utilizatorul nu are permisiunea de a executa aceasta operatiune!]");
+        }
     }
 
     private OrderVO createOrderVO(User user, Product product) {
@@ -174,22 +327,4 @@ class OrderControllerIntegrationTest {
         orderVO.setProductsIdsToQuantity(orderMap);
         return orderVO;
     }
-
-    private Orders generateOrderItems(Product product, User user) {
-        Orders order = new Orders();
-        order.setUser(user);
-        Collection<OrderItem> orderItems = new ArrayList<>();
-        OrderItem orderItem = generateOrderItem(product);
-        orderItems.add(orderItem);
-        order.setOrderItems(orderItems);
-        return order;
-    }
-
-    private OrderItem generateOrderItem(Product product) {
-        OrderItem orderItem = new OrderItem();
-        orderItem.setQuantity(1);
-        orderItem.setProduct(product);
-        return orderItem;
-    }
-
 }

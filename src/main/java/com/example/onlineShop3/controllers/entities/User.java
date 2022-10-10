@@ -29,6 +29,4 @@ public class User {
     @Column(name = "roles")
     @Enumerated(STRING)
     private Collection<Roles> roles;
-
-
 }

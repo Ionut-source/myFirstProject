@@ -25,5 +25,4 @@ public class Product {
     private boolean valid;
     @Enumerated(STRING)
     private Currencies currency;
-
 }
