@@ -20,8 +20,8 @@ public class User {
     private long id;
     private String username;
     private String password;
-    private String surname;
     private String firstname;
+    private String surname;
     @Embedded
     private Address address;
     @ElementCollection
